@@ -1,0 +1,22 @@
+name: Free Windows VPS
+
+on:
+  workflow_dispatch:  # Chạy bằng tay khi cần
+  schedule:
+    - cron: "0 */6 * * *"  # Tự động chạy lại mỗi 6 giờ
+
+jobs:
+  build:
+    runs-on: windows-latest  # Chạy trên máy Windows
+    steps:
+      - name: Kích hoạt RDP
+        run: |
+          net user admin123 Password123 /add
+          net localgroup Administrators admin123 /add
+          reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+          Set-Service -Name TermService -StartupType Automatic
+          Start-Service -Name TermService
+      - name: Hiển thị IP
+        run: ipconfig
